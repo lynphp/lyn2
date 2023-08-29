@@ -1,0 +1,35 @@
+:root {
+    background: #ececec;
+    margin: 0px;
+    padding: 0px;
+}
+body{
+    background: #d5d5d5;    
+    margin: 0px;
+    padding: 0px;
+    color:rgb(49, 49, 49);
+    height: 100dvh;
+}
+div.container{
+    max-width: 900px;
+    margin: auto;
+}
+div.welcome{
+    display: flex;
+    text-align: center;
+    justify-content: center;
+}
+div.welcome-msg{
+    display: flex;
+    flex-direction: row;
+    gap:40px;
+    padding: 20px;
+
+}
+div.welcome-msg div{
+    display: flex;
+    background-color: #ececec;
+    padding:10px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 5px rgb(161, 161, 161);
+}
