@@ -16,6 +16,7 @@ $appConfig = array(
             'loader' => 'appClassAutoloader'
         ),
     ),
-    'dbs' => array()
+    'db' => array(),
+    'error404' => __DIR__ . '/error404.php'
 
 );

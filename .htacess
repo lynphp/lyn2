@@ -1,6 +1,0 @@
-RewriteEngine On
-RewriteBase /<folder>/
-RewriteRule ^index\.php＄ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /folder/index.php [L]

@@ -2,6 +2,7 @@
 
 namespace lyn\base;
 
+use lyn\Page;
 use UnderflowException;
 
 class View
@@ -21,10 +22,10 @@ class View
         $js = [];
         $callerFile = debug_backtrace()[0]['file'];
         $callerFileDir = dirname(debug_backtrace()[0]['file']);
-        $var = [];
+        $params = [];
         foreach ($args as $arg) {
             if (is_array($arg)) {
-                $var = $arg;
+                $params = $arg;
             } else {
                 if (str_ends_with($arg, '.css')) {
                     $css = $arg;
@@ -39,9 +40,12 @@ class View
         if ($file == $callerFile) {
             die('Error:E10001: Parent file should not load it self.');
         } else {
+
+            extract($params, EXTR_OVERWRITE);
             ob_start();
             include $file;
             $output = ob_get_clean();
+
             if (strpos($output, "lyn-style") !== false && strlen($css) < 5) {
                 die('Error:E10002: CSS file cant be loaded. get ' . $css);
             } else {
@@ -78,10 +82,7 @@ class View
                     fclose($cssfile);
                     $cssHashFile = $cssHashFile;
                 }
-                ob_start();
-                //include $callerFileDir . '/' . $cssHashFile;
-                echo "<link rel='stylesheet' type='text/css' href='" . public_web_path . "/css/" . $cssHashFile . "?v=123234' />";
-                $output =  ob_get_clean()  . $output;
+                Page::addStyleString("<link rel='stylesheet' type='text/css' href='" . public_web_path . "/css/" . $cssHashFile . "?v=123234' />");
                 $output = str_replace("lyn-style",  $hash, $output);
             }
         }
