@@ -4,12 +4,14 @@ use lyn\base\View;
 use lyn\Page;
 
 /**
- * Component to render products catalog
+ * Route handler to render 
+ * products/catalog/[slug]
  * 
- * URL:products/catalog/mens/shoes
- * Path: src/routes/products/cataglog/[slug]/index.php
+ * Example URL:products/catalog/mens/shoes
+ * Path: src/routes/products/cataglog/[slug]/
+ * File: index.php
  */
-function component()
+function index()
 {
     [$type, $product] = Request::$slugs;
     Page::$title = $product . '/' . $type;
