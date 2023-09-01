@@ -5,7 +5,7 @@ use lyn\Page;
 
 /**
  * Route handler to render 
- * products/catalog/[slug]
+ * products/catalog/* URL
  * 
  * Example URL:products/catalog/mens/shoes
  * Path: src/routes/products/cataglog/[slug]/
