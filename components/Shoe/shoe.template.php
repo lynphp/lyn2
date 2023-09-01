@@ -1,15 +1,4 @@
-<?php
-
-
-/**
- * Component to render products catalog
- * 
- * URL:products/catalog/mens/shoes
- * Path: src/routes/products/cataglog/[slug]/index.php
- */
-function index($props = [])
-{
-    return "<div class='container'>
+<div class='container'>
     <div class='lyn-style'>
         <div class='welcome'>
             <h1>This is Lyn PHP Framework</h1>
@@ -23,5 +12,4 @@ function index($props = [])
             </div>
         </div>
     </div>
-</div>";
-};
+</div>

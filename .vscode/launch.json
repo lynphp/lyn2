@@ -22,7 +22,7 @@
       "type": "php",
       "request": "launch",
       "program": "${file}",
-      "cwd": "${fileDirname}/index.php",
+      "cwd": "${fileDirname}/test/testIndex.php",
       "port": 9003,
       "runtimeExecutable": "C:\\wamp64\\bin\\php\\php8.0.13\\php.exe",
       "runtimeArgs": [

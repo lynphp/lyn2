@@ -4,14 +4,13 @@
  * 
  */
 
-use lyn\helpers\Config;
 use lyn\helpers\Debug;
 
 function lynClassAutoloader($className)
 {
     $classes = array(
-        __DIR__ . '//framework/lyn/' . $className . '.php',
-        __DIR__ . '//framework/' . $className . '.php',
+        base_path . '\lyn/framework\lyn\\' . $className . '.php',
+        base_path . '\lyn/framework\\' . $className . '.php',
     );
 
     $included = false;
@@ -21,9 +20,9 @@ function lynClassAutoloader($className)
             require_once $classe;
         }
     }
-    $className = substr($className, 4);
+    //$className = substr($className, 4);
     $classes = array(
-        __DIR__ . '/../src/' . $className . '.php',
+        base_path . '\components\\' . $className . '.php',
     );
     foreach ($classes as $classe) {
         if (file_exists($classe)) {

@@ -7,4 +7,5 @@ class Request
     public static $slugs = [];
     public static $lynHeader;
     public static $type;
+    public static $action;
 }
