@@ -1,5 +1,6 @@
 <?php
 
+use lyn\base\View;
 use lyn\helpers\Config;
 use lyn\Page;
 
@@ -30,6 +31,10 @@ class Lyn
          * 
          */
         $rawUrl = $_SERVER['REDIRECT_URL'] ?? '';
+        Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '/src/components/';
+        //application/fragment or application/json
+        $lynHeader = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
+        Request::$lynHeader = $lynHeader;
         /**
          * Let's make sure we can read and handle the url properly
          */
@@ -47,6 +52,13 @@ class Lyn
         /**
          * handle route 
          */
+        if ($lynHeader === 'application/fragment') {
+            Request::$type = 'fragment';
+            $slotContent = $this->handleFragmentRequest($url, $get);
+            http_response_code(200);
+            echo $slotContent;
+            return;
+        }
         $slotContent = $this->handleURL($url, $get);
         ob_start();
         require './src/main.php';
@@ -54,6 +66,18 @@ class Lyn
 
         $page = str_replace("<slot name='main'></slot>",  $slotContent, $page);
         echo $page;
+    }
+    /**
+     * 
+     */
+    private function handleFragmentRequest($url, $get)
+    {
+        $api = substr($url, strlen(base_path) - 1);
+        ob_start();
+        require Path::$apiComponentPath . '/Shoe.php';
+        echo call_user_func('index');
+        $response = ob_get_clean();
+        echo $response;
     }
     private function handleURL($url, $get)
     {
@@ -82,12 +106,12 @@ class Lyn
                             $indexContent = file_get_contents($indexFile, false, null, 0, 400);
                             $lines = strtok($indexContent, ';');
                             //echo $indexContent;
-                            echo $lines;
+                            //echo $lines;
                             $hasNamespace = strpos($indexContent, 'namespace');
                             $hasUseComponents =  strpos($indexContent, 'use components\\');
                             require Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]/index.php';
-                            if (function_exists('component')) {
-                                echo call_user_func('component');
+                            if (function_exists('index')) {
+                                echo call_user_func('index');
                             }
                         } else {
                             echo 'not found';

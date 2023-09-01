@@ -29,7 +29,7 @@ function index()
 <?php Page::JScriptStart() ?>
 <script>
     function load() {
-        alert('Hello script!')
+        console.log('Hello script!')
     }
     window.addEventListener('load', load);
 </script>

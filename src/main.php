@@ -4,6 +4,7 @@ use lyn\helpers\Config;
 use lyn\base\View;
 use lyn\Page;
 
+Page::addScript('/lyn/public/js/lyn.js');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,7 +18,6 @@ use lyn\Page;
 </head>
 
 <body>
-    <div>Hello</div>
     <slot name='main'></slot>
 </body>
 
