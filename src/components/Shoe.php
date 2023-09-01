@@ -1,18 +1,18 @@
 <?php
 
+namespace components\Shoe;
+
 use lyn\base\View;
 use lyn\Page;
+use Request;
 
 /**
- * Route handler to render 
- * products/catalog/* URL
+ * Component to render products catalog
  * 
- * Example URL:products/catalog/mens/shoes
- * Path: src/routes/products/cataglog/[slug]/
- * File: index.php
+ * URL:products/catalog/mens/shoes
+ * Path: src/routes/products/cataglog/[slug]/index.php
  */
-function index()
-{
+$Shoe = function ($props = []) {
     [$type, $product] = Request::$slugs;
     //type=men
     //product=shoes

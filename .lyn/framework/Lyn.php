@@ -65,7 +65,7 @@ class Lyn
         //echo $routeParts[1];
         //echo $routeParts[2];
         ob_start();
-        $routFound = false;
+        $routeFound = false;
         if (sizeof($routeParts) > 1) {
             if (file_exists(Path::$routePath . $routeParts[0])) {
                 if (array_key_exists(1, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '/' . $routeParts[1])) {
@@ -73,9 +73,18 @@ class Lyn
                     if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/' . $routeParts[2])) {
                         // echo $routeParts[2];
                     } else if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]')) {
-                        if (file_exists(Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]/index.php')) {
+                        $indexFile = Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]/index.php';
+                        if (file_exists($indexFile)) {
+                            $routeFound = true;
                             Request::$slugs = array_slice($routeParts, 2);
-                            $routFound = true;
+                            //read the first 400 words
+
+                            $indexContent = file_get_contents($indexFile, false, null, 0, 400);
+                            $lines = strtok($indexContent, ';');
+                            //echo $indexContent;
+                            echo $lines;
+                            $hasNamespace = strpos($indexContent, 'namespace');
+                            $hasUseComponents =  strpos($indexContent, 'use components\\');
                             require Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]/index.php';
                             if (function_exists('component')) {
                                 echo call_user_func('component');
@@ -89,7 +98,7 @@ class Lyn
                 }
             }
         }
-        if ($routFound === false) {
+        if ($routeFound === false) {
             if (file_exists(Path::$routePath . $route)) {
                 //load the rout teamplate;
                 if (file_exists(__DIR__ . Path::$routePath . $route . '/index.php')) {
