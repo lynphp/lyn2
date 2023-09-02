@@ -1,7 +1,6 @@
 <?php
 
-use component\Shoe;
-
-
 ?>
-<x-component class="shoe" data-*="d"></x-component>
+<x-component class="app.shoe" data-shoe="product={{product}}">
+    <slot />
+</x-component>

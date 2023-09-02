@@ -1,6 +1,7 @@
 <?php
 
-use lyn\base\View;
+namespace lyn;
+
 use lyn\helpers\Config;
 use lyn\Page;
 
@@ -31,7 +32,7 @@ class Lyn
          * 
          */
         $rawUrl = $_SERVER['REDIRECT_URL'] ?? '';
-        Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '/src/components/';
+        Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '\src\\components\\';
         //application/fragment or application/json
         Request::$lynHeader = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
         Request::$action = $_SERVER['REQUEST_METHOD'] ?? '';
@@ -61,7 +62,7 @@ class Lyn
         }
         $slotContent = $this->handleURL($url, $get);
         ob_start();
-        require base_path . '/main.php';
+        require base_path . '\main.php';
         $page = ob_get_clean();
         $page = str_replace("<slot name='main'></slot>",  $slotContent, $page);
         echo $page;
@@ -74,7 +75,7 @@ class Lyn
         $api = substr($url, strlen(base_path));
         ob_start();
         if (Request::$action === 'GET') {
-            eval(' use Shoe\Shoe; $component = new Shoe(); echo $component->index();');
+            eval(' use App\Components\Shoe; $component = new Shoe(); echo $component->index();');
             //require base_path . '/components/Shoe.php';
             //echo call_user_func('index');
         }
@@ -87,7 +88,7 @@ class Lyn
      */
     private function handleURL($url, $get)
     {
-        $bp = strlen('routes/');
+        $bp = strlen('routes\\');
         //@var $url = products/catalog/mens/shoe
         $route = substr($url, strlen(route_base_path) + 1);
         Request::$route = $route;
@@ -103,12 +104,13 @@ class Lyn
                 $toCheck = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1];
                 if (array_key_exists(1, $routeParts) && file_exists($toCheck)) {
                     // echo $routeParts[1];
-                    $toCheck = Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/' . $routeParts[2];
-                    if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/' . $routeParts[2])) {
+                    $toCheck = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\\' . $routeParts[2];
+                    if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '/' . $routeParts[2])) {
                         // echo $routeParts[2];
-                    } else if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]')) {
-                        $toCheck = Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]/index.php';
+                    } else if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '/[slug]')) {
+                        $toCheck = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\[slug]/index.php';
                         if (file_exists($toCheck)) {
+                            Path::$hotPath = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1];
                             $routeFound = true;
                             Request::$slugs = array_slice($routeParts, 2);
                             //read the first 400 words
@@ -119,7 +121,7 @@ class Lyn
                             //echo $lines;
                             $hasNamespace = strpos($indexContent, 'namespace');
                             $hasUseComponents =  strpos($indexContent, 'use components\\');
-                            require Path::$routePath . $routeParts[0] . '/' . $routeParts[1] . '/[slug]/index.php';
+                            require Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\[slug]/index.php';
                             if (function_exists('index')) {
                                 echo call_user_func('index');
                             }
@@ -127,7 +129,7 @@ class Lyn
                             echo 'not found';
                         }
                     }
-                } else if (file_exists(Path::$routePath . $routeParts[0] . '/[slug]')) {
+                } else if (file_exists(Path::$routePath . $routeParts[0] . '\[slug]')) {
                     echo '[slug]';
                 }
             }
@@ -135,8 +137,8 @@ class Lyn
         if ($routeFound === false) {
             if (file_exists(Path::$routePath . $route)) {
                 //load the rout teamplate;
-                if (file_exists(Path::$routePath . $route . '/index.php')) {
-                    require Path::$routePath . $route . '/index.php';
+                if (file_exists(Path::$routePath . $route . '\index.php')) {
+                    require Path::$routePath . $route . '\index.php';
                 } else {
                     Page::setTitle('Page not Found');
                     http_response_code(404);

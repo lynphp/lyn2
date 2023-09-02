@@ -6,21 +6,45 @@ namespace Composer\Autoload;
 
 class ComposerStaticInitf43ab6a1ef977fa1f346415f1a2292ba
 {
-    public static $prefixLengthsPsr4 = array (
-        'L' => 
-        array (
-            'Lynphp\\Lyn\\' => 11,
+    public static $prefixLengthsPsr4 = array(
+        'L' =>
+        array(
+            'Lyn\\' => 4,
+        ),
+        'l' =>
+        array(
+            'lyn\\' => 4,
+        ),
+        'A' =>
+        array(
+            'App\\' => 4,
+        ),
+        'a' =>
+        array(
+            'app\\' => 4,
         ),
     );
 
-    public static $prefixDirsPsr4 = array (
-        'Lynphp\\Lyn\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/src',
+    public static $prefixDirsPsr4 = array(
+        'lyn\\' =>
+        array(
+            0 => __DIR__ . '/../..' . '/lyn',
+        ),
+        'Lyn\\' =>
+        array(
+            0 => __DIR__ . '/../..' . '/lyn',
+        ),
+        'app\\' =>
+        array(
+            0 => __DIR__ . '/../..' . '/',
+        ),
+        'App\\' =>
+        array(
+            0 => __DIR__ . '/../..' . '/',
         ),
     );
 
-    public static $classMap = array (
+    public static $classMap = array(
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
@@ -30,7 +54,6 @@ class ComposerStaticInitf43ab6a1ef977fa1f346415f1a2292ba
             $loader->prefixLengthsPsr4 = ComposerStaticInitf43ab6a1ef977fa1f346415f1a2292ba::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitf43ab6a1ef977fa1f346415f1a2292ba::$prefixDirsPsr4;
             $loader->classMap = ComposerStaticInitf43ab6a1ef977fa1f346415f1a2292ba::$classMap;
-
         }, null, ClassLoader::class);
     }
 }

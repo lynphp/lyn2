@@ -21,7 +21,10 @@ window.addEventListener('load', async () => {
     var elems = document.body.getElementsByTagName("x-component");
     for (var i = 0; i < elems.length; i++) {
         var elem = elems.item(i)
-        var response = await get(elem.attributes.class.value);
-        elem.innerHTML = response;
+        var renderType = elem.getAttribute('render');
+        if (renderType == null || renderType === 'csr') {
+            var response = await get(elem.attributes.class.value);
+            elem.innerHTML = response;
+        }
     }
 })

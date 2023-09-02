@@ -35,6 +35,6 @@ function lynClassAutoloader($className)
     }
     //stop();
 }
-spl_autoload_register('lynClassAutoloader');
-$Debughelpers = new Debug();
-$Debughelpers->declareGlobalsHelpers();
+//spl_autoload_register('lynClassAutoloader');
+//$Debughelpers = new Debug();
+//$Debughelpers->declareGlobalsHelpers();

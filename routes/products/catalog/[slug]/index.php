@@ -2,6 +2,7 @@
 
 use lyn\base\View;
 use lyn\Page;
+use lyn\Request;
 
 /**
  * Route handler to render 
@@ -14,6 +15,7 @@ use lyn\Page;
 function index()
 {
     [$type, $product] = Request::$slugs;
+    $eager = Request::checkEager(__DIR__);
     //type=men
     //product=shoes
     Page::$title = $product . '/' . $type;
@@ -21,6 +23,7 @@ function index()
     return View::render(
         'product.template',
         'product.css',
+        $eager,
         ['type' => $type, 'product' => $product]
     );
 }

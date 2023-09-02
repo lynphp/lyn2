@@ -13,4 +13,5 @@ function testRouteFragment()
     $_SERVER['HTTP_LYN_REQUEST_HEADER'] = 'application/fragment';
     require '../test.php';
 }
-testRouteFragment();
+//testRouteFragment();
+testRoute();

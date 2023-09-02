@@ -19,7 +19,7 @@ use lyn\Page;
  * Component to render products catalog
  *
  * URL:products/catalog/mens/shoes
- * Path: src/routes/products/cataglog/[slug]/index.php
+ * Path: src\routes\products\cataglog\[slug]\index.php
  */
 function component()
 {

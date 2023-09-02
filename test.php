@@ -1,17 +1,24 @@
 <?php
+
+use lyn\Lyn;
+
 define('time_start', microtime(true));
 define("base_path", __DIR__);
-define("route_base_path", '/lyn');
-define("public_web_path", "/lyn/public");
-define("public_server_path", __DIR__ . "/public");
-require_once 'lyn/lyndex.php';
+define("route_base_path", '\lyn');
+define("public_web_path", "\lyn\public");
+define("public_server_path", __DIR__ . "\public");
+require_once 'vendor\autoload.php';
+require_once 'lyn\lyndex.php';
 /**
  * set your environment to dev|prod
  */
 $env = 'dev';
-$conf = __DIR__ . '/config.' . $env . '.php';
+$conf = __DIR__ . '\config.' . $env . '.php';
 /**
  * 
  */
-$app = new Lyn();
-$app->start($conf);
+
+if ($handleRoute ?? true) {
+    $app = new Lyn();
+    $app->start($conf);
+}

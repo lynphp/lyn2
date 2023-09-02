@@ -17,6 +17,6 @@ $appConfig = array(
         ),
     ),
     'db' => array(),
-    'error404' => __DIR__ . '/error404.php'
+    'error404' => __DIR__ . '\error404.php'
 
 );
