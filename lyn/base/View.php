@@ -36,7 +36,7 @@ class View
     private static function getComponentTags($html)
     {
 
-        $pattern = '/<x-component\s+([^>]+)>\s+(.*?)<\/x-component>/s';
+        $pattern = '/<x-lyn-component\s+([^>]+)>\s+(.*?)<\/x-lyn-component>/s';
         preg_match_all($pattern, $html, $matches, PREG_SET_ORDER);
         return $matches;
     }
@@ -97,8 +97,8 @@ class View
                         $defVars = get_defined_vars();
                         $varValue = ${$attr[1]};
                         $result = eval('use App\Components\Shoe; $component = new Shoe(); return $component->index(' . $varValue . ');');
-                        $output = str_replace($comp[0],  $result, $output);
-                        $output = str_replace('<x-component ',  '<x-component render="ssr" ', $output);
+                        $output = str_replace($comp[2],  $result, $output);
+                        $output = str_replace('<x-lyn-component ',  '<x-lyn-component render="ssr" ', $output);
                     }
                 }
             }
@@ -132,7 +132,7 @@ class View
                             $cssContent = $cssContent . $line;
                         }
                     }
-                    $cacheTime = (string)time();
+
                     $cssfile = fopen(public_server_path . '\css\\' . $cssHashFile, "w");
                     fwrite($cssfile, $cssContent);
                     fclose($cssfile);

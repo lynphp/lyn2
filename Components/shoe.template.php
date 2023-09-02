@@ -1,3 +1,6 @@
+<?php
+[$data] = $params;
+?>
 <div class='container'>
     <div class='lyn-style'>
         <div class='welcome'>
@@ -5,6 +8,7 @@
         </div>
         <div class='welcome-msg'>
             <div>
+                <b><?= $data ?></b>
                 Lyn PHP Framework is based on the MVC (Model-View-Controller) pattern, which separates the logic, presentation, and data layers of your application. This makes your code more organized, reusable, and maintainable. Lyn PHP Framework also supports RESTful APIs, database abstraction, caching, authentication, validation, templating, and more. You can use the built-in components or extend them with your own custom classes.
             </div>
             <div>

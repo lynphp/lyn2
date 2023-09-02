@@ -4,6 +4,7 @@ $appConfig = array(
     'title' => 'Lyn Framework',
     'version' => '0.1.0',
     'email' => 'admin@localhost.com',
+    'defaultRender' => 'ssr',
     'components' => array(
         'app' => array(
             'paths' => array(

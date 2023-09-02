@@ -18,7 +18,7 @@ async function get(comp, query = 'all') {
 }
 
 window.addEventListener('load', async () => {
-    var elems = document.body.getElementsByTagName("x-component");
+    var elems = document.body.getElementsByTagName("x-lyn-component");
     for (var i = 0; i < elems.length; i++) {
         var elem = elems.item(i)
         var renderType = elem.getAttribute('render');

@@ -23,7 +23,7 @@ class Shoe extends SecureComponent
      */
     function index(...$props)
     {
-        return View::render('shoe.template', 'shoe.css');
+        return View::render('shoe.template', 'shoe.css', $props);
     }
 
     function post($props = [])
