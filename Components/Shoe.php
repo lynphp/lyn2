@@ -14,7 +14,7 @@ class Shoe extends SecureComponent
     }
     /**
      * Define your security rules here. Lyn will execute this secure() method before calling the index method.
-     * Before the index is called, Lyn will check if this method return's that this component will be shown.
+     * Before the index is called, Lyn will check if this method return's true.
      * SecureComponent has a limited display time after render and it will be unmounted after.
      * Display duration is also based on cookie expiry by default, but it can customized per Component/Render
      * Rules is also applied in component in shadow DOM or in SPA (Single Page App) page waiting to be hyrated
