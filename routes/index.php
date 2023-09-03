@@ -9,6 +9,6 @@ echo View::render('index.template', 'index.css');
 
 <?php Page::JScriptStart() ?>
 <script>
-    console.log('hello world')
+    log('hello world')
 </script>
 <?php Page::JScriptEnd() ?>

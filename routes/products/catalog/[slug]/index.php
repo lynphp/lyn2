@@ -32,7 +32,7 @@ function index()
 <?php Page::JScriptStart() ?>
 <script>
     function load() {
-        console.log('Hello script!')
+        log('Hello script!')
     }
     window.addEventListener('load', load);
 </script>

@@ -3,7 +3,7 @@
 use lyn\Page;
 ?>
 
-<?php Page::addStyle("/lyn/public/css/main.css", "stylesheet"); ?>
+<?php Page::addStyle("/public/css/main.css", "stylesheet"); ?>
 <div class='container'>
     <div class='lyn-style'>
         <div class='welcome'>

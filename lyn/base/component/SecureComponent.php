@@ -1,8 +1,7 @@
 <?php
 
-namespace lyn\base;
+namespace lyn\base\component;
 
-use lyn\base\SecureComponentInterface;
 
 abstract class SecureComponent extends Component implements SecureComponentInterface
 {

@@ -27,6 +27,10 @@ class Page
     {
         array_push(self::$scripts, "<script tyle='$type' src='$src'></script>");
     }
+    static function addScriptSrc($src, $type = 'text/javascript')
+    {
+        array_push(self::$scripts, "<script tyle='$type'>$src</script>");
+    }
     static function JScriptStart()
     {
         ob_start();;

@@ -2,7 +2,9 @@
 
 namespace lyn;
 
+use lyn\data\JSONResponse;
 use lyn\helpers\Config;
+use lyn\helpers\StringHelpers;
 use lyn\Page;
 
 class Lyn
@@ -17,6 +19,7 @@ class Lyn
         include $conf;
         $lynConf['lynVersion'] = '0.0.1';
         $lynConf['name'] = 'Lyn PHP Framework';
+        //$lynConf['db'] = $appConfig['db'];
         $lynConf['components'] = [
             'framework' => [
                 'path' => __DIR__ . '\framework\\',
@@ -25,22 +28,23 @@ class Lyn
             'app' => $appConfig['components']['app'],
         ];
         $config = array_merge($appConfig, $lynConf);
+
         Config::set($config);
         Page::setTitle($config['name']);
         Path::$routePath = base_path . '\routes\\';
-        /**
-         * 
-         */
-        $rawUrl = $_SERVER['REDIRECT_URL'] ?? '';
         Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '\src\\components\\';
         //application/fragment or application/json
         Request::$lynHeader = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
-        Request::$action = $_SERVER['REQUEST_METHOD'] ?? '';
+        Request::$acceptType = $_SERVER['HTTP_ACCEPT'] ?? '';
+        Request::$method = $_SERVER['REQUEST_METHOD'] ?? '';
         /**
          * Let's make sure we can read and handle the url properly
          */
-        $url = filter_var($rawUrl, FILTER_SANITIZE_URL);
-        Request::$url = $url;
+        $rawUrl = $_SERVER['REQUEST_URI'] ?? '';
+        $rawUrl = explode('?', $rawUrl)[0];
+        Request::$url = filter_var($rawUrl, FILTER_SANITIZE_URL);
+        Request::$route = substr(Request::$url, strlen(route_base_path) + 1);
+        Request::$routeParts = explode('/', Request::$route);
         /**
          * 
          */
@@ -48,19 +52,38 @@ class Lyn
         /**
          * 
          */
-        $get = filter_var($rawGet, FILTER_SANITIZE_URL);
+        Request::$get = filter_var($rawGet, FILTER_SANITIZE_URL);
 
         /**
          * handle route 
          */
         if (Request::$lynHeader === 'application/fragment') {
             Request::$type = 'fragment';
-            $slotContent = $this->handleFragmentRequest($url, $get);
+            $slotContent = $this->handleFragmentRequest($url, Request::$get);
             http_response_code(200);
             echo $slotContent;
             return;
         }
-        $slotContent = $this->handleURL($url, $get);
+        if (Request::$routeParts[0] === 'api') {
+            $comp = Request::$routeParts[1];
+            $service = Request::$routeParts[2];
+            $uComp = StringHelpers::toCamelCase($comp);
+            $response = new JSONResponse();
+            $response->requestTime = '';
+            if (Request::$method === 'GET') {
+                $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_GET);');
+            } elseif (Request::$method === 'POST') {
+                $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_POST,$_GET);');
+            } elseif (Request::$method === 'PUT') {
+                $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_PUT,$_GET);');
+            } elseif (Request::$method === 'DELETE') {
+                $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_DELETE,$_GET);');
+            }
+            header('Content-Type: application/json');
+            echo  $response->toJSONString();
+            return;
+        }
+        $slotContent = $this->handleURL(Request::$url, Request::$get);
         ob_start();
         require base_path . '\main.php';
         $page = ob_get_clean();
@@ -74,8 +97,8 @@ class Lyn
     {
         $api = substr($url, strlen(base_path));
         ob_start();
-        if (Request::$action === 'GET') {
-            eval(' use App\Components\Shoe; $component = new Shoe(); echo $component->index();');
+        if (Request::$method === 'GET') {
+            eval(' use App\Components\ShoeComponent; $component = new Shoe(); echo $component->index();');
             //require base_path . '/components/Shoe.php';
             //echo call_user_func('index');
         }
@@ -94,9 +117,6 @@ class Lyn
         Request::$route = $route;
         //products/catalog/mens
         $routeParts = explode('/', Request::$route);
-        //echo $routeParts[0];
-        //echo $routeParts[1];
-        //echo $routeParts[2];
         ob_start();
         $routeFound = false;
         if (sizeof($routeParts) > 1) {
@@ -116,11 +136,6 @@ class Lyn
                             //read the first 400 words
 
                             $indexContent = file_get_contents($toCheck, false, null, 0, 400);
-                            $lines = strtok($indexContent, ';');
-                            //echo $indexContent;
-                            //echo $lines;
-                            $hasNamespace = strpos($indexContent, 'namespace');
-                            $hasUseComponents =  strpos($indexContent, 'use components\\');
                             require Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\[slug]/index.php';
                             if (function_exists('index')) {
                                 echo call_user_func('index');
@@ -134,6 +149,7 @@ class Lyn
                 }
             }
         }
+
         if ($routeFound === false) {
             if (file_exists(Path::$routePath . $route)) {
                 //load the rout teamplate;

@@ -9,8 +9,10 @@ use lyn\helpers\Debug;
 function lynClassAutoloader($className)
 {
     $classes = array(
-        base_path . '\lyn/framework\lyn\\' . $className . '.php',
-        base_path . '\lyn/framework\\' . $className . '.php',
+        base_path . '\lyn\framework\lyn\\' . $className . '.php',
+        base_path . '\lyn\framework\\' . $className . '.php',
+        base_path . '\lyn\base\\' . $className . '.php',
+        base_path . '\\' . $className . '.php',
     );
 
     $included = false;
@@ -35,6 +37,6 @@ function lynClassAutoloader($className)
     }
     //stop();
 }
-//spl_autoload_register('lynClassAutoloader');
+spl_autoload_register('lynClassAutoloader');
 //$Debughelpers = new Debug();
 //$Debughelpers->declareGlobalsHelpers();

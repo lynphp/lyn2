@@ -2,11 +2,23 @@
 
 namespace App\Components;
 
-use lyn\base\Component;
+use App\models\Shoe;
 use lyn\base\SecureComponent;
 use lyn\base\View;
 
-class Shoe extends SecureComponent
+/**
+ * Lyn Component/SecureComponent usage:
+ * As REST API:  
+ *  GET:/api/shoes/getShoes
+ *  POST:/api/shoes/postShoe
+ *  UPDATE:/api/shoes/updateShoe
+ *  DELETE:/api/shoes/deleteShoe
+ *  PUT:/api/shoes/putShoe
+ * As Web Component
+ *  GET:/component/shoes/getShoePage
+ */
+
+class ShoeComponent extends SecureComponent
 {
     function __construct()
     {
@@ -34,7 +46,29 @@ class Shoe extends SecureComponent
         return View::render('shoe.template', 'shoe.css', $props);
     }
 
-    function post($props = [])
+    /**
+     * Component to return products info in JSON format
+     * 
+     * URL:products/catalog/mens/shoes
+     * Path: src/routes/products/cataglog/[slug]/index.php
+     */
+    function getShoes(...$props)
     {
+        return json_encode(Shoe::getShoes($props));
+    }
+
+    /**
+     * Component to render products catalog
+     * 
+     * URL:products/catalog/mens/shoes
+     * Path: src/routes/products/cataglog/[slug]/index.php
+     */
+    function getShoePage(...$props)
+    {
+        return View::render('shoe.template', 'shoe.css', $props);
+    }
+    function postShoePage(...$props)
+    {
+        return 'form data posted...';
     }
 }

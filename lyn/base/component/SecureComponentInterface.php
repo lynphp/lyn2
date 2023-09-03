@@ -1,6 +1,6 @@
 <?php
 
-namespace lyn\base;
+namespace lyn\base\component;
 
 interface SecureComponentInterface
 {

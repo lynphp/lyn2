@@ -2,6 +2,6 @@
 
 namespace lyn\base;
 
-class Component
+class Model
 {
 }

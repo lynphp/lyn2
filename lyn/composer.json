@@ -2,9 +2,7 @@
     "name": "lynphp/lyn",
     "autoload": {
         "psr-4": {
-            "App\\": "./",
-            "Lyn\\": "./lyn/",
-            "lyn\\": "./lyn/",
+            "lyn\\": "./",
             "app\\": "./"
         }
     },

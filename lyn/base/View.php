@@ -3,7 +3,6 @@
 namespace lyn\base;
 
 use lyn\Page;
-use UnderflowException;
 
 class View
 {
@@ -96,7 +95,7 @@ class View
                         extract(self::getAttributeKeyValue($attr[0]), EXTR_OVERWRITE);
                         $defVars = get_defined_vars();
                         $varValue = ${$attr[1]};
-                        $result = eval('use App\Components\Shoe; $component = new Shoe(); return $component->index(' . $varValue . ');');
+                        $result = eval('use App\Components\ShoeComponent; $component = new ShoeComponent(); return $component->index(' . $varValue . ');');
                         $output = str_replace($comp[2],  $result, $output);
                         $output = str_replace('<x-lyn-component ',  '<x-lyn-component render="ssr" ', $output);
                     }
