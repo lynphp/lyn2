@@ -3,6 +3,6 @@
 use App\models\Shoe;
 
 $handleRoute = true;
-require '../test.php';
+require 'testBase.php';
 
 $shoe = new Shoe();

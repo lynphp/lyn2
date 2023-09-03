@@ -5,18 +5,18 @@ namespace lyn;
 use lyn\data\JSONResponse;
 use lyn\helpers\Config;
 use lyn\helpers\StringHelpers;
-use lyn\Page;
 
 class Lyn
 {
+    function init($conf){
 
-    /**
-     * 
-     */
-    function start($conf)
-    {
         global $config;
-        include $conf;
+        $appConfig =[];
+        if(file_exists($conf)){
+            include_once $conf;
+        }else{
+            throw new \ErrorException("Error:E10005: Config file {$conf} does not exist");
+        }
         $lynConf['lynVersion'] = '0.0.1';
         $lynConf['name'] = 'Lyn PHP Framework';
         //$lynConf['db'] = $appConfig['db'];
@@ -33,6 +33,13 @@ class Lyn
         Page::setTitle($config['name']);
         Path::$routePath = base_path . '\routes\\';
         Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '\src\\components\\';
+    }
+    /**
+     *
+     * @throws \ErrorException
+     */
+    function start()
+    {
         //application/fragment or application/json
         Request::$lynHeader = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
         Request::$acceptType = $_SERVER['HTTP_ACCEPT'] ?? '';
@@ -99,7 +106,7 @@ class Lyn
         ob_start();
         if (Request::$method === 'GET') {
             eval(' use App\Components\ShoeComponent; $component = new Shoe(); echo $component->index();');
-            //require base_path . '/components/Shoe.php';
+            //require base_path . '/components/ShoeBackend.php';
             //echo call_user_func('index');
         }
         $response = ob_get_clean();

@@ -1,4 +1,4 @@
 <?php
 $handleRoute = false;
-require '../test.php';
+require '../testBase.php';
 require 'testComponent.php';

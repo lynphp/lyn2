@@ -7,14 +7,15 @@ use Head;
 
 class Page
 {
-    static $title = '';
-    static $metas = [];
-    static $metaViewPort = '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    static $metaChartset = '<meta charset="utf-8">';
-    static $links = [];
-    static $scripts = [];
-    static $keywords = [];
-    static $styles = [];
+    static string $title = '';
+    static array $metas = [];
+    static string $metaViewPort = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    static string $metaChartset = '<meta charset="utf-8">';
+    static array $links = [];
+    static array $scripts = [];
+    static array $scriptsEnd = [];
+    static array $keywords = [];
+    static array $styles = [];
     static function setTitle($newTitle)
     {
         self::$title = $newTitle;
@@ -35,10 +36,14 @@ class Page
     {
         ob_start();;
     }
-    static function JScriptEnd()
+    static function JScriptEnd($renderEnd=false)
     {
         $code = ob_get_clean();
-        array_push(self::$scripts, $code);
+        if($renderEnd){
+            array_push(self::$scriptsEnd, $code);
+        }else{
+            array_push(self::$scripts, $code);
+        }
     }
     static function addScriptAsync($src, $type = 'text/javascript')
     {
@@ -91,6 +96,16 @@ class Page
 
         $scriptElements = '';
         foreach (self::$scripts as $link) {
+            $scriptElements = $scriptElements .
+                $link;
+        }
+        return $scriptElements;
+    }
+    static function getEndScripts()
+    {
+
+        $scriptElements = '';
+        foreach (self::$scriptsEnd as $link) {
             $scriptElements = $scriptElements .
                 $link;
         }

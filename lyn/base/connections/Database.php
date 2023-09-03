@@ -1,17 +1,18 @@
 <?php
 
-namespace lyn\base;
+namespace lyn\base\connections;
 
 use lyn\helpers\Config;
 
 class Database
 {
-    private static $execute = [];
-    private static $query = [];
+    private static array $execute = [];
+    private static array $query = [];
     public function getExecConnection()
     {
-        if (sizeof(self::$execute) === 0) {
+        if (count(self::$execute) === 0) {
             foreach (Config::$config['db'] as $drivers) {
+               $id= array_rand($drivers);
                 foreach ($drivers as $verb => $connections) {
                     if ($verb === 'execute') {
                         foreach ($connections as $id => $dbconn) {
@@ -40,7 +41,7 @@ class Database
     }
     public function getQueryConnection()
     {
-        if (sizeof(self::$execute) === 0) {
+        if (count(self::$query) === 0) {
             foreach (Config::$config['db'] as $drivers) {
                 foreach ($drivers as $verb => $connections) {
                     if ($verb === 'query') {
@@ -68,7 +69,12 @@ class Database
 
         return self::$query[0];
     }
-    public function execute($sql)
+
+    /**
+     * @param $sql string The raw SQL command to be executed
+     * @return int|false
+     */
+    final public function execute($sql):  int|false
     {
         $execConn = $this->getExecConnection();
         try {
@@ -77,13 +83,13 @@ class Database
             echo "Connection failed: " . $e->getMessage();
         }
     }
-    public function query($sql)
+    public function query($sql):\PDOStatement|bool
     {
         $execConn = $this->getQueryConnection();
         try {
             return $execConn->query($sql, \PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            echo "Connection failed: " . $e->getMessage();
+            throw $e;
         }
     }
 }

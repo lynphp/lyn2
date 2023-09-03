@@ -8,7 +8,7 @@ echo View::render('index.template', 'index.css');
 
 
 <?php Page::JScriptStart() ?>
-<script>
-    log('hello world')
+<script type="text/javascript">
+   window.addEventListener('load',log('Hello, Lyn Developer!'));
 </script>
-<?php Page::JScriptEnd() ?>
+<?php Page::JScriptEnd(true) ?>

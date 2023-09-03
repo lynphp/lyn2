@@ -26,4 +26,5 @@ Page::addScript('/public/js/lyn.js');
     <?= 'const php_end_time=' . microtime(true) . ';' ?>
 </script>
 
+<?= Page::getEndScripts(); ?>
 </html>

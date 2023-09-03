@@ -3,42 +3,49 @@
 namespace lyn\base\model;
 
 use lyn\base\connections\Database;
+use lyn\base\model\Field;
+use lyn\data\DataRows;
 
-class SchemaObject extends Database
+abstract class SchemaObject extends Database
 {
-    public $fields = [];
-    public $primaryKey = '';
-    public $schemas = [];
-    public $tableName = '';
-    public function seed()
-    {
+    public array $fields = [];
+    public string $primaryKey = '';
+    public array $schemas = [];
+    public string $tableName = '';
+    abstract public function seed(array $data=[]):int;
+    abstract public function sync():int;
+    final public function getCSVFieldNames():string{
+        $csvField='';
+        foreach($this->fields as $field){
+            $csvField.="`{$field->name}`,";
+        }
+        return rtrim($csvField,',');
     }
-    public function sync()
-    {
-    }
-    public function defineTable($tableDef)
+    /**
+     * @param $tableDef
+     * @return void
+     */
+    final public function defineTable($tableDef): void
     {
         $this->tableName = $tableDef['name'];
         $this->schemas = $tableDef['schemas'];
         foreach ($tableDef['schemas'] as $db => $fields) {
             foreach ($fields as $key => $field) {
                 $fld = new Field($key);
-                if (strpos($field, 'PRIMARY KEY') !== false) {
+                if (str_contains($field, 'PRIMARY KEY')) {
                     $this->primaryKey = $key;
                 }
-                $pos = strpos($field, 'UNSIGNED');
-                if (strpos($field, 'UNSIGNED') !== false) {
+                if (str_contains($field, 'UNSIGNED')) {
                     $fld->min = 0;
                 }
-                if (strpos($field, 'INT') !== false) {
+                if (str_contains($field, 'INT')) {
                     $fld->type = 'number';
                 }
 
-                if (strpos($field, 'NOT NULL') !== false) {
+                if (str_contains($field, 'NOT NULL')) {
                     $fld->required = true;
                 }
-                $pos = strpos($field, 'VARCHAR');
-                if (strpos($field, 'VARCHAR') !== false) {
+                if (str_contains($field, 'VARCHAR')) {
                     $fld->type = 'string';
                     $pattern = "/\\d+/";
                     preg_match($pattern, $field, $matches);
@@ -48,38 +55,50 @@ class SchemaObject extends Database
             }
         }
         $tableExist = $this->checkTableExist();
-        $count = $tableExist->rowCount();
-        if ($count == 0) {
+        if ($tableExist->rowCount() === 0) {
             $this->push('mysql');
         }
-        $tableDetails = $this->getTableDatails();
+        $tableDetails = $this->getTableDetails();
         $table_fields = $tableDetails->fetchAll(\PDO::FETCH_ASSOC);
-        var_dump($table_fields);
     }
-    private function checkTableExist()
+    private function checkTableExist():bool|\PDOStatement
     {
         $tblName = $this->tableName;
         $sql = "SHOW TABLES LIKE '$tblName'";
-        return parent::query($sql);
+        return $this->query($sql);
     }
-    private function getTableDatails()
+    private function getTableDetails():bool|\PDOStatement
     {
         $tblName = $this->tableName;
         $sql = "DESCRIBE $tblName;";
-        return parent::query($sql);
+        return $this->query($sql);
     }
     /**
      * Drop the table and
      */
-    public function push($schema)
+    final public function push($schema): false|int
     {
         $this->schemas[$schema];
         $command = "CREATE TABLE " . $this->tableName . " (\r";
         foreach ($this->schemas[$schema] as $key => $fieldSetup) {
-            $command = $command . " " . $key . " " . $fieldSetup . ",\r";
+            $command .= " " . $key . " " . $fieldSetup . ",\r";
         }
         $command = substr($command, 0, strlen($command) - 2);
-        $command = $command . ")";
-        parent::execute($command);
+        $command .= ")";
+        $this->execute($command);
+    }
+
+    /**
+     * @param array $filter
+     * @return array
+     */
+    final public function findAll($filter=[]):DataRows{
+        //$fields = $filter['fields'];
+        //$where = $filter['where'];
+        $conn = $this->getQueryConnection();
+        $stmt = $conn->prepare("SELECT * FROM {$this->tableName}");
+        $stmt->execute();
+        $this->results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return new DataRows(new \ArrayIterator($this->results));
     }
 }

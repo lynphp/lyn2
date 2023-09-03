@@ -5,6 +5,6 @@ function testGetApi()
     $_GET['type'] = 'men';
     $_SERVER['CONTENT_TYPE'] = 'application/json';
     $_SERVER['REDIRECT_URI'] = '/lyn/api/shoe/getShoe';
-    require '../test.php';
+    require '../testBase.php';
 }
 testGetApi();
