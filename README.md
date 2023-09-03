@@ -95,3 +95,13 @@ class Shoe extends SecureComponent
     }
 }
 ```
+
+## Just like any PHP Frameworks, Lyn also provides native ORM to access your data.
+
+```php
+$shoe = new \App\models\Shoe();
+$shoes = $shoe->getShoes();
+foreach ($shoes  as $shoe) {
+    echo $shoe->id;
+}
+```
