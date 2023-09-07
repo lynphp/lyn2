@@ -2,20 +2,31 @@
 
 namespace lyn;
 
+use ErrorException;
 use lyn\data\JSONResponse;
 use lyn\helpers\Config;
 use lyn\helpers\StringHelpers;
 
 class Lyn
 {
-    function init($conf){
+    public function __construct()
+    {
+        //$docLen = strlen($_SERVER['CONTEXT_DOCUMENT_ROOT']);
+        //$srpLen = strlen($_SERVER['SCRIPT_FILENAME']);
+        //define("uri_base_path", substr($_SERVER['DOCUMENT_ROOT'],$docLen));
+    }
 
+    /**
+     * @throws ErrorException
+     */
+    final public  function init($conf):Lyn
+    {
         global $config;
-        $appConfig =[];
-        if(file_exists($conf)){
+        $appConfig = [];
+        if (file_exists($conf)) {
             include_once $conf;
-        }else{
-            throw new \ErrorException("Error:E10005: Config file {$conf} does not exist");
+        } else {
+            throw new ErrorException("Error:E10005: Config file {$conf} does not exist");
         }
         $lynConf['lynVersion'] = '0.0.1';
         $lynConf['name'] = 'Lyn PHP Framework';
@@ -31,12 +42,13 @@ class Lyn
 
         Config::set($config);
         Page::setTitle($config['name']);
-        Path::$routePath = base_path . '\routes\\';
-        Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '\src\\components\\';
+        Path::$routePath = base_path . '/routes/';
+        Path::$apiComponentPath = dirname($_SERVER["SCRIPT_FILENAME"]) . '/src/components/';
+        return $this;
     }
     /**
      *
-     * @throws \ErrorException
+     * @throws ErrorException
      */
     function start()
     {
@@ -47,11 +59,10 @@ class Lyn
         /**
          * Let's make sure we can read and handle the url properly
          */
-        $rawUrl = $_SERVER['REQUEST_URI'] ?? '';
-        $rawUrl = explode('?', $rawUrl)[0];
+        $rawUrl = explode('?',$_SERVER['REQUEST_URI'])[0]?? '';
         Request::$url = filter_var($rawUrl, FILTER_SANITIZE_URL);
-        Request::$route = substr(Request::$url, strlen(route_base_path) + 1);
-        Request::$routeParts = explode('/', Request::$route);
+        Path::$route = str_replace("/",DIRECTORY_SEPARATOR ,ltrim(Request::$url, url_base_path));
+        Request::$routeParts = explode(DIRECTORY_SEPARATOR, Path::$route);
         /**
          * 
          */
@@ -59,18 +70,22 @@ class Lyn
         /**
          * 
          */
-        Request::$get = filter_var($rawGet, FILTER_SANITIZE_URL);
-
+        Request::$get[] = filter_var($rawGet, FILTER_SANITIZE_URL);
+        if (isset(Request::$get['lyn'])) {
+            if (Request::$get['lyn'] === 'phpinfo') {
+            }
+        }
         /**
-         * handle route 
+         * handle route for WebComponent
          */
-        if (Request::$lynHeader === 'application/fragment') {
+        if (Request::$acceptType === 'application/fragment') {
             Request::$type = 'fragment';
-            $slotContent = $this->handleFragmentRequest($url, Request::$get);
+            $slotContent = $this->handleFragmentRequest(Request::$url, Request::$get);
             http_response_code(200);
             echo $slotContent;
             return;
         }
+        //API or WebService/MicroServices handlers
         if (Request::$routeParts[0] === 'api') {
             $comp = Request::$routeParts[1];
             $service = Request::$routeParts[2];
@@ -92,7 +107,7 @@ class Lyn
         }
         $slotContent = $this->handleURL(Request::$url, Request::$get);
         ob_start();
-        require base_path . '\main.php';
+        require base_path . DIRECTORY_SEPARATOR.'main.php';
         $page = ob_get_clean();
         $page = str_replace("<slot name='main'></slot>",  $slotContent, $page);
         echo $page;
@@ -100,68 +115,92 @@ class Lyn
     /**
      * 
      */
-    private function handleFragmentRequest($url, $get)
+    private function handleFragmentRequest($url, $get):string
     {
         $api = substr($url, strlen(base_path));
         ob_start();
         if (Request::$method === 'GET') {
-            eval(' use App\Components\ShoeComponent; $component = new Shoe(); echo $component->index();');
-            //require base_path . '/components/ShoeBackend.php';
-            //echo call_user_func('index');
+            eval(' use App\Components\ShoeComponent; $component = new ShoeComponent(); echo $component->index();');
         }
-        $response = ob_get_clean();
-        return $response;
+        return ob_get_clean();
     }
+
     /**
-     * @param  String $url
-     * @param  array $get
+     * @param String $url
+     * @param array $get
+     * @return string
      */
-    private function handleURL($url, $get)
+    private function handleURL(string $url, array $get):string
     {
         $bp = strlen('routes\\');
-        //@var $url = products/catalog/mens/shoe
-        $route = substr($url, strlen(route_base_path) + 1);
-        Request::$route = $route;
         //products/catalog/mens
-        $routeParts = explode('/', Request::$route);
+        $routeParts = explode(DIRECTORY_SEPARATOR, Path::$route);
         ob_start();
         $routeFound = false;
-        if (sizeof($routeParts) > 1) {
-            if (file_exists(Path::$routePath . $routeParts[0])) {
-                $toCheck = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1];
-                if (array_key_exists(1, $routeParts) && file_exists($toCheck)) {
-                    // echo $routeParts[1];
-                    $toCheck = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\\' . $routeParts[2];
-                    if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '/' . $routeParts[2])) {
-                        // echo $routeParts[2];
-                    } else if (array_key_exists(2, $routeParts) && file_exists(Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '/[slug]')) {
-                        $toCheck = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\[slug]/index.php';
-                        if (file_exists($toCheck)) {
-                            Path::$hotPath = Path::$routePath . $routeParts[0] . '\\' . $routeParts[1];
-                            $routeFound = true;
-                            Request::$slugs = array_slice($routeParts, 2);
-                            //read the first 400 words
 
-                            $indexContent = file_get_contents($toCheck, false, null, 0, 400);
-                            require Path::$routePath . $routeParts[0] . '\\' . $routeParts[1] . '\[slug]/index.php';
-                            if (function_exists('index')) {
-                                echo call_user_func('index');
-                            }
-                        } else {
-                            echo 'not found';
-                        }
+        // Split the path into segments
+        $segments = explode('/', trim(Request::$url, '/'));
+
+        // Initialize the current directory as the base directory
+        $current_dir = base_path.DIRECTORY_SEPARATOR.'routes';
+
+        // Initialize an empty array to store the slug variables
+        Request::$slugs = array();
+        // Loop through the segments and check if they match any subdirectory or file
+        foreach ($segments as $segment) {
+            // Get the full path of the current segment
+            $full_path = $current_dir . DIRECTORY_SEPARATOR . $segment;
+
+            // Check if the full path is a directory and if it exists
+            if (is_dir($full_path) && file_exists($full_path)) {
+                // Update the current directory to the full path
+                $current_dir = $full_path;
+            }
+            // Check if the full path is a file and if it exists
+            elseif (is_file($full_path) && file_exists($full_path)) {
+                // Do something with the matching file, for example, include it
+                echo $full_path;
+                break;
+            }
+            // Otherwise, add the segment to the slug array
+            else {
+                Request::$slugs[] = $segment;
+            }
+        }
+        $output='';
+        // If no matching file was found, check if there is an index.php file in the current directory
+        if (!isset($full_path) || !is_file($full_path)) {
+            // Get the path of the index.php file
+            $index_path = file_exists($current_dir . DIRECTORY_SEPARATOR.$current_dir.'-index.php') ? $current_dir . DIRECTORY_SEPARATOR . $current_dir.'-index.php': $current_dir . DIRECTORY_SEPARATOR .'index.php';
+            Path::$hotPath = Path::$routePath . $current_dir;
+            // Check if the index.php file exists
+            if (is_file($index_path) && file_exists($index_path)) {
+                $routeFound = true;
+                // Include the index.php file and pass the slug array as a variable
+                include_once $index_path;
+                if(Request::$method==='GET' && function_exists('get')){
+                    $output= get();
+                }else if(Request::$method==='POST' && function_exists('post')){
+                    $output=post();
+                }else if(Request::$method==='PUT' && function_exists('put')){
+                    $output=put();
+                }else if(Request::$method==='DELETE' && function_exists('delete')){
+                    $output=delete();
+                }else{
+                    if(ob_get_contents() !==''){
+                        $routeFound = true;
+                    }else{
+                        //we did not detect an echo within the route
+                        $routeFound = false;
                     }
-                } else if (file_exists(Path::$routePath . $routeParts[0] . '\[slug]')) {
-                    echo '[slug]';
                 }
             }
         }
-
         if ($routeFound === false) {
-            if (file_exists(Path::$routePath . $route)) {
-                //load the rout teamplate;
-                if (file_exists(Path::$routePath . $route . '\index.php')) {
-                    require Path::$routePath . $route . '\index.php';
+            if (file_exists(Path::$routePath . Path::$route)) {
+                //load the rout template;
+                if (file_exists(Path::$routePath . Path::$route . DIRECTORY_SEPARATOR . 'index.php')) {
+                    require Path::$routePath . Request::$route . DIRECTORY_SEPARATOR . 'index.php';
                 } else {
                     Page::setTitle('Page not Found');
                     http_response_code(404);
@@ -169,11 +208,11 @@ class Lyn
                 }
             } else {
                 Page::setTitle('Page not Found');
-
                 http_response_code(404);
                 require Config::$config['error404'];
             }
         }
+        echo $output;
         return ob_get_clean();
     }
 }

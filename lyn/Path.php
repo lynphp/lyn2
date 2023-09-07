@@ -4,11 +4,12 @@ namespace lyn;
 
 class Path
 {
-    public static $routePath;
-    public static $apiComponentPath;
+    public static string $routePath;
+    public static string $route;
+    public static string $apiComponentPath;
     /**
      * Path for eager loading
      * value is set during routing automically for you.
      */
-    public static $hotPath;
+    public static string $hotPath;
 }

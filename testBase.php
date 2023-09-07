@@ -1,6 +1,5 @@
 <?php
 
-
 define('time_start', microtime(true));
 const base_path = __DIR__;
 const route_base_path = '\lyn';
@@ -16,10 +15,10 @@ use lyn\Lyn;
  */
 $env = 'backend';
 $conf = __DIR__ . '\config\app.' . $env . '.php';
+
 /**
  * 
  */
-
 $app = new Lyn();
 //Initialize the web app to support unit testing.
 $app->init($conf);

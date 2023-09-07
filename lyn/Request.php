@@ -4,23 +4,21 @@ namespace lyn;
 
 class Request
 {
-    public static $url;
-    public static $route;
-    public static $slugs = [];
-    public static $lynHeader;
-    public static $type;
-    public static $method;
-    public static $activeRoute;
-    public static $acceptType;
-    public static $routeParts = [];
-    public static $get;
-    public static function checkEager($_route)
+    public static string $url;
+
+    public static array $slugs = [];
+    public static string $lynHeader;
+    public static string $type;
+    public static string $method;
+    public static string $activeRoute;
+    public static string $acceptType;
+    public static array $routeParts = [];
+    public static array $get=[];
+    public static function checkEager($_route):string
     {
-        $hotPath = Path::$hotPath;
-        $result =  str_starts_with($_route, $hotPath);
-        return $result;
+        return str_starts_with($_route, Path::$hotPath);
     }
-    public static function response($content, $code = 200)
+    public static function response($content, $code = 200):void
     {
     }
 }

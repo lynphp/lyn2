@@ -7,121 +7,132 @@ use Head;
 
 class Page
 {
-    static string $title = '';
-    static array $metas = [];
-    static string $metaViewPort = '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    static string $metaChartset = '<meta charset="utf-8">';
-    static array $links = [];
-    static array $scripts = [];
-    static array $scriptsEnd = [];
-    static array $keywords = [];
-    static array $styles = [];
-    static function setTitle($newTitle)
+    public static string $title = '';
+    public static array $metas = [];
+    public static string $metaViewPort = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    public static string $metaCharSet = '<meta charset="utf-8">';
+    public static array $links = [];
+    public static array $scripts = [];
+    public static array $scriptsEnd = [];
+    public static array $keywords = [];
+    public static array $styles = [];
+    public static function setTitle($newTitle):void
     {
         self::$title = $newTitle;
     }
-    static function getTitle()
+    public static function getTitle():string
     {
         return self::$title;
     }
-    static function addScript($src, $type = 'text/javascript')
+    public static function addScript($src, $type = 'text/javascript'):void
     {
-        array_push(self::$scripts, "<script tyle='$type' src='$src'></script>");
+        self::$scripts[] = "<script tyle='$type' src='".url_base_path.assets_path."/$src'></script>";
     }
-    static function addScriptSrc($src, $type = 'text/javascript')
+    public static function addScriptSrc($src, $type = 'text/javascript'):void
     {
-        array_push(self::$scripts, "<script tyle='$type'>$src</script>");
+        self::$scripts[] = "<script tyle='$type'>$src</script>";
     }
-    static function JScriptStart()
+    public static function JScriptStart():void
     {
-        ob_start();;
+        ob_start();
     }
-    static function JScriptEnd($renderEnd=false)
+    public static function JScriptEnd($renderEnd=false):void
     {
         $code = ob_get_clean();
         if($renderEnd){
-            array_push(self::$scriptsEnd, $code);
+            self::$scriptsEnd[] = $code;
         }else{
-            array_push(self::$scripts, $code);
+            self::$scripts[] = $code;
         }
     }
-    static function addScriptAsync($src, $type = 'text/javascript')
+    public static function addScriptAsync($src, $type = 'text/javascript'):void
     {
-        array_push(self::$scripts, "<script async tyle='$type' src='$src'></script>");
+        self::$scripts[] = "<script async type='$type' src='".url_base_path."/$src'></script>";
     }
-    static function addStyle($href, $rel = 'stylesheet', $type = '')
+    public static function addCDNScriptAsync($src, $type = 'text/javascript'):void
     {
-        if ($type === '') {
-            array_push(self::$styles, "<link rel='$rel' href='$href'>");
-        } else {
-            array_push(self::$styles, "<link rel='$rel' href='$href' type='$type'>");
-        }
-    }
-    static function addStyleString($linkRel)
-    {
-        array_push(self::$styles, $linkRel);
-    }
-    static function addMetaName($name, $description)
-    {
-        array_push(self::$metas, "<meta name='$name' content='$description'>");
-    }
-    static function addMetaProperty($name, $description)
-    {
-        array_push(self::$metas, "<meta property='$name' content='$description'>");
+        self::$scripts[] = "<script async type='$type' src='$src'></script>";
     }
 
-    static function setMetaCharset($charset = 'utf-8')
+    /**
+     * Register's the relative URL path of the local stylesheet file.
+     * @example <?php Page::addAssetStyle("static/css/main.css", "stylesheet"); ?>
+     * @param string $href The relative URL path of the stylesheet file. It should NOT include "/" at the beginning.
+     * @param string $rel
+     * @param string $type
+     * @return void
+     */
+    public static function addAssetStyle(string $href, string $rel = 'stylesheet', string $type = ''):void
     {
-        self::$metaChartset = "<meta charset='$charset'>";
+        if ($type === '') {
+            self::$styles[] = "<link rel='$rel' href='".url_base_path.assets_path."/$href'>";
+        } else {
+            self::$styles[] = "<link rel='$rel' href='".url_base_path.assets_path."/$href' type='$type'>";
+        }
     }
-    static function setMetaViewPort($content)
+
+    /**
+     * Register's external stylesheets or CDN (Content Delivery Network).
+     * @param string $href The relative URL path of the stylesheet file. It should NOT include "/" at the beginning.
+     * @param string $rel
+     * @param string $type
+     * @return void
+     */
+    public static function addCDNStyle(string $href, string $rel = 'stylesheet',string $type = ''):void
+    {
+        if ($type === '') {
+            self::$styles[] = "<link rel='$rel' href='$href'>";
+        } else {
+            self::$styles[] = "<link rel='$rel' href='$href' type='$type'>";
+        }
+    }
+
+    /**
+     * Register's the complete link element
+     * @param string $linkRel
+     * @return void
+     */
+    public static function addStyleString(string $linkRel):void
+    {
+        self::$styles[] = $linkRel;
+    }
+
+    public static function addMetaProperty($name, $description):void
+    {
+        self::$metas[] = "<meta property='$name' content='$description'>";
+    }
+
+    public static function setMetaCharset($charset = 'utf-8'):void
+    {
+        self::$metaCharSet = "<meta charset='$charset'>";
+    }
+    public static function setMetaViewPort($content):void
     {
         self::$metaViewPort = "<meta name='viewport' content='$content'>";
     }
-    static function getMetaCharset()
+    public static function getMetaCharset():string
     {
-        return self::$metaChartset;
+        return self::$metaCharSet;
     }
-    static function getLinks()
+    public static function getLinks():string
     {
-        $linkElements = '';
-        foreach (self::$links as $link) {
-            $linkElements = $linkElements .
-                $link;
-        }
-        return $linkElements;
+        return implode('', self::$links);
     }
-    static function getScripts()
+    public static function getScripts():string
     {
 
-        $scriptElements = '';
-        foreach (self::$scripts as $link) {
-            $scriptElements = $scriptElements .
-                $link;
-        }
-        return $scriptElements;
+        return implode('', self::$scripts);
     }
-    static function getEndScripts()
+    public static function getEndScripts():string
     {
 
-        $scriptElements = '';
-        foreach (self::$scriptsEnd as $link) {
-            $scriptElements = $scriptElements .
-                $link;
-        }
-        return $scriptElements;
+        return implode('', self::$scriptsEnd);
     }
-    static function getStyles()
+    public static function getStyles():string
     {
-
-        $styleElements = '';
-        foreach (self::$styles as $style) {
-            $styleElements = $styleElements .
-                $style;
-        }
-        return $styleElements;
+        return implode('', self::$styles);
     }
-    static function getMetaViewport()
+    public static function getMetaViewport():string
     {
         return self::$metaViewPort;
     }

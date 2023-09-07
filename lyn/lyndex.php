@@ -6,7 +6,7 @@
 
 use lyn\helpers\Debug;
 
-function lynClassAutoloader($className)
+function lynClassAutoloader($className): void
 {
     $classes = array(
         base_path . '\lyn\framework\lyn\\' . $className . '.php',
@@ -16,23 +16,23 @@ function lynClassAutoloader($className)
     );
 
     $included = false;
-    foreach ($classes as $classe) {
-        if (file_exists($classe)) {
+    foreach ($classes as $class) {
+        if (file_exists($class)) {
             $included = true;
-            require_once $classe;
+            require_once $class;
         }
     }
     //$className = substr($className, 4);
     $classes = array(
         base_path . '\components\\' . $className . '.php',
     );
-    foreach ($classes as $classe) {
-        if (file_exists($classe)) {
+    foreach ($classes as $class) {
+        if (file_exists($class)) {
             $included = true;
-            require_once $classe;
+            require_once $class;
         }
     }
-    if ($included == false) {
+    if (!$included) {
         die('ERROR:E10004 Lyn internal class require error. Class ' . $className . ' not found!');
     }
     //stop();

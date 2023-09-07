@@ -1,25 +1,21 @@
 <?php
-
+const strict_mode = 1;
 define('time_start', microtime(true));
-
-
 const base_path = __DIR__;
-const route_base_path = '\lyn';
-const public_web_path = "\public";
-const public_server_path = __DIR__ . "\public";
-require_once 'vendor\autoload.php';
-require_once 'lyn\lyndex.php';
-
-use lyn\Lyn;
-
+$base = rtrim(dirname($_SERVER['SCRIPT_NAME']),DIRECTORY_SEPARATOR);
+define("url_base_path",$base);
+const assets_path = "/public";
+const public_server_path = __DIR__ . "/public";
+require_once 'vendor/autoload.php';
 /**
  * set your environment to backend|prod
  */
-$env = 'backend';
-$conf = __DIR__ . '\config\app.' . $env . '.php';
+const env = 'dev';
+$conf = __DIR__ . '/config/app.' . env . '.php';
 /**
  * 
  */
-$app = new Lyn();
-$app->init($conf);
-$app->start();
+try {
+    (new \lyn\Lyn())->init($conf)->start();
+} catch (ErrorException $e) {
+}

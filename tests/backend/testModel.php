@@ -1,7 +1,7 @@
 <?php
 use app\backend\models\ShoeBackend;
 require '../../testBase.php';
-//ShoeBackend::seedData();
+ShoeBackend::seedData();
 
 $shoe = new \App\models\Shoe();
 $shoes = $shoe->getShoes();

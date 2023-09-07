@@ -3,7 +3,7 @@
 namespace App\Components;
 
 use App\models\Shoe;
-use lyn\base\SecureComponent;
+use lyn\base\component\SecureComponent;
 use lyn\base\View;
 
 /**
@@ -41,11 +41,20 @@ class ShoeComponent extends SecureComponent
      * URL:products/catalog/mens/shoes
      * Path: src/routes/products/cataglog/[slug]/index.php
      */
-    function index(...$props)
+    function index(...$props):string
     {
         return View::render('shoe.template', 'shoe.css', $props);
     }
-
+    /**
+     * Component to return products info in JSON format
+     *
+     * URL:products/catalog/mens/shoes
+     * Path: src/routes/products/cataglog/[slug]/index.php
+     */
+    function getShoe(...$props)
+    {
+        return json_encode(Shoe::getShoes($props));
+    }
     /**
      * Component to return products info in JSON format
      * 

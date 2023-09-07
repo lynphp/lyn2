@@ -17,5 +17,6 @@
     "require": {
         "symfony/serializer": "^6.3",
         "symfony/property-access": "^6.3"
-    }
+    },
+    "disable-tls": true
 }

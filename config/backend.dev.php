@@ -21,4 +21,4 @@ $appConfig = array(
     'error404' => __DIR__ . '\error404.php'
 
 );
-require 'db.config.php';
+require 'db.dev.php';
