@@ -1,0 +1,8 @@
+form{
+    display: flex;
+    flex-direction: column;
+    max-width: 300px;
+}
+label{
+    min-width: 40px;
+}

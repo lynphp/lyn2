@@ -1,6 +1,6 @@
 <?php
 
-use App\models\Shoe;
+use App\app\models\Shoe;
 
 $handleRoute = true;
 require 'testBase.php';

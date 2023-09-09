@@ -2,7 +2,6 @@
 
 use lyn\Page;
 ?>
-
 <?php Page::addAssetStyle("css/static/main.css", "stylesheet"); ?>
 <div class='container'>
     <div class='lyn-style'>

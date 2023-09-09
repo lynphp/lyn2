@@ -9,16 +9,16 @@ use Symfony\Component\Serializer\Serializer;
 
 class JSONResponse
 {
-    public $requestTime;
-    public $data;
-    public $responseCode = 200;
-    private function getSerializer()
+    public string $requestTime;
+    public string $data;
+    public int $responseCode = 200;
+    private function getSerializer():Serializer
     {
         $encoders = [new XmlEncoder(), new JsonEncoder()];
         $normalizers = [new ObjectNormalizer()];
         return new Serializer($normalizers, $encoders);
     }
-    public function toJSONString()
+    final public function toJSONString():string
     {
         return $this->getSerializer()->serialize($this, 'json');
     }

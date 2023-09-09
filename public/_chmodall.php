@@ -10,7 +10,7 @@ function chmod_r($dir, $dirPermissions, $filePermissions): void
 {
     $dp = opendir($dir);
     while($file = readdir($dp)) {
-        if (($file == ".") || ($file == ".."))
+        if (($file === ".") || ($file === ".."))
             continue;
 
         $fullPath = $dir."/".$file;

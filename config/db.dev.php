@@ -7,7 +7,7 @@
  * 
  */
 
-$db = [
+return [
     'mysql' => [
         'query' => [
             0 => [
@@ -46,4 +46,3 @@ $db = [
         ]
     ]
 ];
-$appConfig['db'] = $db;

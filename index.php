@@ -1,4 +1,5 @@
 <?php
+//phpinfo();
 const strict_mode = 1;
 define('time_start', microtime(true));
 const base_path = __DIR__;
@@ -11,11 +12,13 @@ require_once 'vendor/autoload.php';
  * set your environment to backend|prod
  */
 const env = 'dev';
-$conf = __DIR__ . '/config/app.' . env . '.php';
+$conf = __DIR__ . '/config/lyn.conf.php';
+
 /**
  * 
  */
 try {
-    (new \lyn\Lyn())->init($conf)->start();
+    $app=(new \lyn\Lyn())->init($conf);
+    $app->start();
 } catch (ErrorException $e) {
 }

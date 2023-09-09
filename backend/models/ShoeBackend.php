@@ -1,7 +1,7 @@
 <?php
 namespace App\backend\models;
+use App\app\models\Shoe;
 use lyn\base\model\BackEndModel;
-use App\models\Shoe;
 
 class ShoeBackend extends Shoe implements BackEndModel {
 

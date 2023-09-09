@@ -19,26 +19,16 @@ class Lyn
     /**
      * @throws ErrorException
      */
-    final public  function init($conf):Lyn
+    final public  function init(string $conf):Lyn
     {
         global $config;
         $appConfig = [];
         if (file_exists($conf)) {
-            include_once $conf;
+            $config= require $conf;
         } else {
             throw new ErrorException("Error:E10005: Config file {$conf} does not exist");
         }
-        $lynConf['lynVersion'] = '0.0.1';
-        $lynConf['name'] = 'Lyn PHP Framework';
         //$lynConf['db'] = $appConfig['db'];
-        $lynConf['components'] = [
-            'framework' => [
-                'path' => __DIR__ . '\framework\\',
-                'loader' => 'lynClassAutoloader'
-            ],
-            'app' => $appConfig['components']['app'],
-        ];
-        $config = array_merge($appConfig, $lynConf);
 
         Config::set($config);
         Page::setTitle($config['name']);
@@ -50,7 +40,7 @@ class Lyn
      *
      * @throws ErrorException
      */
-    function start()
+    final public function start():void
     {
         //application/fragment or application/json
         Request::$lynHeader = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
@@ -63,9 +53,7 @@ class Lyn
         Request::$url = filter_var($rawUrl, FILTER_SANITIZE_URL);
         Path::$route = str_replace("/",DIRECTORY_SEPARATOR ,ltrim(Request::$url, url_base_path));
         Request::$routeParts = explode(DIRECTORY_SEPARATOR, Path::$route);
-        /**
-         * 
-         */
+
         $rawGet = $_GET;
         /**
          * 
@@ -86,14 +74,43 @@ class Lyn
             return;
         }
         //API or WebService/MicroServices handlers
-        if (Request::$routeParts[0] === 'api') {
-            $comp = Request::$routeParts[1];
-            $service = Request::$routeParts[2];
-            $uComp = StringHelpers::toCamelCase($comp);
+        $API_TYPE=0;
+        $API_VERSION=1;
+        $API_COMPONENT=2;
+        $API_SERVICE=3;
+        //example URI: api/v1/component/doc
+        //example URI: api/v1/component/service_name
+        if (Request::$routeParts[$API_TYPE] === 'api') {
             $response = new JSONResponse();
             $response->requestTime = '';
-            if (Request::$method === 'GET') {
-                $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_GET);');
+
+            if(count(Request::$routeParts) < 3){
+                http_response_code(404);
+                $response->data='404 Service does not exist for: ' . Path::$route;
+                echo  $response->toJSONString();
+                return;
+            }
+
+            $comp = Request::$routeParts[$API_COMPONENT];
+            $version = Request::$routeParts[$API_VERSION];
+            $service = Request::$routeParts[$API_SERVICE];
+            $uComp = StringHelpers::toCamelCase($comp);
+            //file::components/v1/shoe/ShoeComponent.php
+            //use::App\components\v1\shoe\ShoeComponent
+            $compFile = base_path.'/components/'.$version.'/' . $uComp . 'Component.php';
+            if (!file_exists($compFile)) {
+                http_response_code(404);
+                $response->data='404 Service does not exist for: ' . Path::$route;
+                echo  $response->toJSONString();
+                return;
+            }
+            /*
+             * App\components\v1\shoe\ShoeComponent; $component = new ShoeComponent(); return $component->service_name()
+             */
+            $service_call = 'use App\Components\\'.$version .'\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service;
+
+            if(Request::$method === 'GET') {
+                $response->data = eval($service_call . '($_GET);');
             } elseif (Request::$method === 'POST') {
                 $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_POST,$_GET);');
             } elseif (Request::$method === 'PUT') {
@@ -101,26 +118,66 @@ class Lyn
             } elseif (Request::$method === 'DELETE') {
                 $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_DELETE,$_GET);');
             }
+
+
             header('Content-Type: application/json');
             echo  $response->toJSONString();
             return;
-        }
-        $slotContent = $this->handleURL(Request::$url, Request::$get);
-        ob_start();
-        require base_path . DIRECTORY_SEPARATOR.'main.php';
-        $page = ob_get_clean();
-        $page = str_replace("<slot name='main'></slot>",  $slotContent, $page);
-        echo $page;
+            }
+            $slotContent = $this->handleRequest(Request::$url, Request::$get);
+
+            ob_start();
+            require base_path . '/layouts/'. Page::$template.'.template.php';
+            $template = ob_get_clean();
+            $template = str_replace("<slot name='main'></slot>",  $slotContent, $template);
+            ob_start();
+            require base_path . '/layouts/main.php';
+            $page = ob_get_clean();
+            $page = str_replace("<slot name='main'></slot>",  $template, $page);
+
+            if (env === 'dev' && Request::$acceptType === 'text/event-stream') {
+                header('Content-Type: text/event-stream');
+                header('Cache-Control: no-cache');
+                if(isset(Request::$slugs[0]) && Request::$slugs[0]==='check'){
+                    $msg ="data:".$slotContent. PHP_EOL;
+                    echo  $msg. PHP_EOL;
+                    ob_flush();
+                    return;
+                }
+
+                $runfiles = get_included_files();
+                $hash =[];
+
+                foreach(array_keys($runfiles) as $key){
+                    $exclude = false;
+                    foreach(Config::$config['app']['hotreload']['exclude'] as $remove){
+                        if(str_contains($runfiles[$key], $remove)){
+                            $exclude = true;
+                        }
+                    }
+                    if(!$exclude){
+                        $hash[$runfiles[$key]] = hash_file('md5', $runfiles[$key]);
+                    }
+                }
+                $msg ="data:".json_encode(['status'=>'okay']). PHP_EOL;
+                $hash_file = fopen(base_path.'/tmp/hotreload.hash','w');
+                fwrite($hash_file, json_encode($hash));
+                fclose($hash_file);
+                echo  $msg. PHP_EOL;
+                return;
+            }
+            echo $page;
+
     }
     /**
      * 
      */
-    private function handleFragmentRequest($url, $get):string
+    private function handleFragmentRequest(string $url, array $get):string
     {
         $api = substr($url, strlen(base_path));
         ob_start();
         if (Request::$method === 'GET') {
-            eval(' use App\Components\ShoeComponent; $component = new ShoeComponent(); echo $component->index();');
+            eval(' use App\app\components\api\v1\shoe\ShoeComponent; $component = new ShoeComponent(); echo $component->index();');
         }
         return ob_get_clean();
     }
@@ -130,7 +187,7 @@ class Lyn
      * @param array $get
      * @return string
      */
-    private function handleURL(string $url, array $get):string
+    private function handleRequest(string $url, array $get):string
     {
         $bp = strlen('routes\\');
         //products/catalog/mens
@@ -146,27 +203,40 @@ class Lyn
 
         // Initialize an empty array to store the slug variables
         Request::$slugs = array();
+        $includePath='';
+        $phpFile = 'index';
         // Loop through the segments and check if they match any subdirectory or file
         foreach ($segments as $segment) {
             // Get the full path of the current segment
-            $full_path = $current_dir . DIRECTORY_SEPARATOR . $segment;
+            $full_path = $current_dir.'/'.$segment;
+            if($segment===''){
+                $segment='index';
+            }
+            $full_path_php = $current_dir .'/'.$segment.'/index.php';
+            $full_segment_php = $current_dir .'/'.$segment.'.php';
 
             // Check if the full path is a directory and if it exists
-            if (is_dir($full_path) && file_exists($full_path)) {
-                // Update the current directory to the full path
-                $current_dir = $full_path;
-            }
-            // Check if the full path is a file and if it exists
-            elseif (is_file($full_path) && file_exists($full_path)) {
-                // Do something with the matching file, for example, include it
-                echo $full_path;
-                break;
+            if ($includePath==='' && is_dir($full_path) && file_exists($full_path_php)) {
+                $includePath = $full_path_php;
+                $routeFound=true;
+            } else if ($includePath ==='' && file_exists($full_segment_php)) {
+                $includePath = $full_segment_php;
+                $routeFound = true;
+            } else if ($includePath==='') {
+                $current_dir .= '/'.$segment;
             }
             // Otherwise, add the segment to the slug array
             else {
                 Request::$slugs[] = $segment;
             }
         }
+        echo require $includePath;
+
+        if (env === 'dev' && Request::$acceptType === 'text/event-stream') {
+
+            return ob_get_clean();
+        }
+
         $output='';
         // If no matching file was found, check if there is an index.php file in the current directory
         if (!isset($full_path) || !is_file($full_path)) {
@@ -200,7 +270,7 @@ class Lyn
             if (file_exists(Path::$routePath . Path::$route)) {
                 //load the rout template;
                 if (file_exists(Path::$routePath . Path::$route . DIRECTORY_SEPARATOR . 'index.php')) {
-                    require Path::$routePath . Request::$route . DIRECTORY_SEPARATOR . 'index.php';
+                    require Path::$routePath . Path::$route . DIRECTORY_SEPARATOR . 'index.php';
                 } else {
                     Page::setTitle('Page not Found');
                     http_response_code(404);

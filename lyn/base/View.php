@@ -90,18 +90,15 @@ class View
                         extract(self::get_attribute_by_key($attr[0]), EXTR_OVERWRITE);
                         $defVars = get_defined_vars();
                         $varValue = ${$attr[1]};
-                        $result = eval('use App\Components\ShoeComponent; $component = new ShoeComponent(); return $component->index(' . $varValue . ');');
-                        $output = str_replace($comp[2],  $result, $output);
-                        $output = str_replace('<x-lyn-component ',  '<x-lyn-component render="ssr" ', $output);
+                        $result = eval('use App\app\components\api\v1\shoe\ShoeComponent; $component = new ShoeComponent(); return $component->index(' . $varValue . ');');
+                        $output = str_replace(array($comp[2], '<x-lyn-component '), array($result, '<x-lyn-component render="ssr" '), $output);
                     }
                 }
             }
             if (str_contains($output, "lyn-style") && strlen($css) < 5) {
                 return self::render_error('Error:E10002: CSS file can\'t be loaded. file ' . $css, 404);
-            } else {
-                $css_content = '';
-
-                /**
+            } elseif($css!==''){
+                $css_content = '';           /**
                  * detect if th css needs to be overwritten through md5 hash
                  */
                 $hash = hash_file('md5', $caller_file_dir . '/' . $css);
@@ -134,6 +131,7 @@ class View
                 Page::addStyleString("<link rel='stylesheet' type='text/css' href='". url_base_path.assets_path . "/css/" . $css_hash_file . "?v=123234' />");
                 $output = str_replace("lyn-style",  $hash, $output);
             }
+
         }
         return $output;
     }

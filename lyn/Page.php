@@ -15,6 +15,7 @@ class Page
     public static array $scripts = [];
     public static array $scriptsEnd = [];
     public static array $keywords = [];
+    public static string $template = 'default';
     public static array $styles = [];
     public static function setTitle($newTitle):void
     {

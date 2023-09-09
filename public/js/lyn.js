@@ -36,12 +36,16 @@ window.addEventListener('load', async () => {
 var js_ready_time;
 function __captureReady() {
     js_ready_time = Date.now()
+    const txSec = ((1/(php_end_time - php_start_time))*php_num_cores).toFixed(0);
     __dbg('Request received time was ' + greenStartCode + '%f' + endCode, php_start_time)
     __dbg('Server rendered time was ' + greenStartCode + '%f' + endCode, php_end_time)
     __dbg('Page served in ' + greenStartCode + '%f' + endCode + ' seconds', ((php_end_time - php_start_time).toFixed(4)))
-    __dbg('Current state of Lyn App can handle %f trx/sec', (1/(php_end_time - php_start_time)).toFixed(0))
-    __dbg('Page is ready in ' + greenStartCode + '%f' + endCode + ' seconds', 1/((js_ready_time / 1000) - php_start_time).toFixed(4))
-
+    __dbg('Current state of Lyn App can handle' + greenStartCode + ' %f' + endCode + ' trx/sec', (txSec));
+    __dbg('Page is ready in ' + greenStartCode + '%f' + endCode + ' seconds', ((js_ready_time/1000)-php_start_time).toFixed(4))
+    /*__dbg('js_ready_time: %f',js_ready_time);
+    __dbg('js_ready_time: %f',js_ready_time/1000);
+    __dbg('php_start_time: %f',php_start_time);
+    __dbg('js_ready_time: %f',((js_ready_time/1000)-php_start_time).toFixed(4));*/
 }
 
 console.log('【Ｌｙｎ　ＰＨＰ　Ｆｒａｍｅｗｏｒｋ】')
@@ -86,4 +90,25 @@ function __dbg(message, ...params) {
 }
 function __lg(message, ...params) {
     console.log(lynCode + ': ' + new Date().toLocaleTimeString() + ' [LOG  ] ' + message, params)
+}
+
+if(typeof(EventSource) !== "undefined") {
+    let source_init = new EventSource(window.location.href);
+    source_init.onmessage = function(event) {
+        //console.log(JSON.parse(event.data));
+        source_init.close();
+        let source = new EventSource("/hotreload/check/");
+        source.onmessage = function(event) {
+            let data = JSON.parse(event.data);
+            //console.log(data)
+            if(data.reload){
+                __dbg('Reloading...');
+                window.location.reload();
+            }
+            //alert(JSON.parse(event.data));
+        }
+        //source.close();
+    };
+} else {
+    document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";
 }
