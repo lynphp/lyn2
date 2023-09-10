@@ -36,14 +36,14 @@ foreach ($segments as $segment) {
     }
 }
 
-// If no matching file was found, check if there is an index.php file in the current directory
+// If no matching file was found, check if there is an mens.index.php file in the current directory
 if (!isset($full_path) || !is_file($full_path)) {
-    // Get the path of the index.php file
-    $index_path = $current_dir . '/index.php';
+    // Get the path of the mens.index.php file
+    $index_path = $current_dir . '/mens.index.php';
 
-    // Check if the index.php file exists
+    // Check if the mens.index.php file exists
     if (is_file($index_path) && file_exists($index_path)) {
-        // Include the index.php file and pass the slug array as a variable
+        // Include the mens.index.php file and pass the slug array as a variable
         echo $index_path;
     }
 }

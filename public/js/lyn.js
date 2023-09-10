@@ -94,20 +94,31 @@ function __lg(message, ...params) {
 
 if(typeof(EventSource) !== "undefined") {
     let source_init = new EventSource(window.location.href);
+
     source_init.onmessage = function(event) {
-        //console.log(JSON.parse(event.data));
+        if(sessionStorage.getItem('url')!==window.location.href){
+            sessionStorage.clear()
+        }else{
+            let inputs = document.getElementsByTagName('input');
+            for(let i=0;i<inputs.length ;i++){
+                console.log(sessionStorage.getItem(inputs[i].name))
+                inputs[i].value=sessionStorage.getItem(inputs[i].name);
+            }
+        }
+        sessionStorage.setItem("url", window.location.href);
         source_init.close();
-        let source = new EventSource("/hotreload/check/");
+        let source = new EventSource("/hotreload");
         source.onmessage = function(event) {
             let data = JSON.parse(event.data);
-            //console.log(data)
             if(data.reload){
                 __dbg('Reloading...');
+                let inputs = document.getElementsByTagName('input');
+                for(let i=0;i<inputs.length ;i++){
+                    sessionStorage.setItem(inputs[i].name, inputs[i].value);
+                }
                 window.location.reload();
             }
-            //alert(JSON.parse(event.data));
         }
-        //source.close();
     };
 } else {
     document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";

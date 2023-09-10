@@ -3,6 +3,7 @@
 namespace lyn;
 
 use ErrorException;
+use lyn\base\View;
 use lyn\data\JSONResponse;
 use lyn\helpers\Config;
 use lyn\helpers\StringHelpers;
@@ -43,8 +44,8 @@ class Lyn
     final public function start():void
     {
         //application/fragment or application/json
-        Request::$lynHeader = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
-        Request::$acceptType = $_SERVER['HTTP_ACCEPT'] ?? '';
+        Request::$lyn_header = $_SERVER['HTTP_LYN_REQUEST_HEADER'] ?? '';
+        Request::$http_accept = $_SERVER['HTTP_ACCEPT'] ?? '';
         Request::$method = $_SERVER['REQUEST_METHOD'] ?? '';
         /**
          * Let's make sure we can read and handle the url properly
@@ -52,7 +53,7 @@ class Lyn
         $rawUrl = explode('?',$_SERVER['REQUEST_URI'])[0]?? '';
         Request::$url = filter_var($rawUrl, FILTER_SANITIZE_URL);
         Path::$route = str_replace("/",DIRECTORY_SEPARATOR ,ltrim(Request::$url, url_base_path));
-        Request::$routeParts = explode(DIRECTORY_SEPARATOR, Path::$route);
+        Request::$segments = explode(DIRECTORY_SEPARATOR, Path::$route);
 
         $rawGet = $_GET;
         /**
@@ -66,11 +67,11 @@ class Lyn
         /**
          * handle route for WebComponent
          */
-        if (Request::$acceptType === 'application/fragment') {
+        if (Request::$http_accept === 'application/fragment') {
             Request::$type = 'fragment';
-            $slotContent = $this->handleFragmentRequest(Request::$url, Request::$get);
+            $slot_content = $this->handleFragmentRequest(Request::$url, Request::$get);
             http_response_code(200);
-            echo $slotContent;
+            echo $slot_content;
             return;
         }
         //API or WebService/MicroServices handlers
@@ -80,20 +81,20 @@ class Lyn
         $API_SERVICE=3;
         //example URI: api/v1/component/doc
         //example URI: api/v1/component/service_name
-        if (Request::$routeParts[$API_TYPE] === 'api') {
+        if (Request::$segments[$API_TYPE] === 'api') {
             $response = new JSONResponse();
             $response->requestTime = '';
 
-            if(count(Request::$routeParts) < 3){
+            if(count(Request::$segments) < 3){
                 http_response_code(404);
                 $response->data='404 Service does not exist for: ' . Path::$route;
                 echo  $response->toJSONString();
                 return;
             }
 
-            $comp = Request::$routeParts[$API_COMPONENT];
-            $version = Request::$routeParts[$API_VERSION];
-            $service = Request::$routeParts[$API_SERVICE];
+            $comp = Request::$segments[$API_COMPONENT];
+            $version = Request::$segments[$API_VERSION];
+            $service = Request::$segments[$API_SERVICE];
             $uComp = StringHelpers::toCamelCase($comp);
             //file::components/v1/shoe/ShoeComponent.php
             //use::App\components\v1\shoe\ShoeComponent
@@ -119,55 +120,53 @@ class Lyn
                 $response->data = eval('use App\Components\\' . $uComp . 'Component; $component = new ' . $uComp . 'Component(); return $component->' . $service . '($_DELETE,$_GET);');
             }
 
-
             header('Content-Type: application/json');
             echo  $response->toJSONString();
             return;
+        }
+        $slot_content = $this->handleRequest(Request::$url, Request::$get);
+
+        ob_start();
+
+        $loaded_templates = View::$loaded_templates;
+        require base_path . '/layouts/'. Page::$template.'.template.php';
+        $template = ob_get_clean();
+        $template = str_replace("<slot name='main'></slot>",  $slot_content, $template);
+        ob_start();
+        require base_path . '/layouts/main.php';
+        $page = ob_get_clean();
+        $page = str_replace("<slot name='main'></slot>",  $template, $page);
+
+        if (env === 'dev' && Request::$http_accept === 'text/event-stream') {
+            header('Content-Type: text/event-stream');
+            header('Cache-Control: no-cache');
+            $run_files = get_included_files();
+
+            foreach($loaded_templates as $file){
+                $run_files[]=$file;
             }
-            $slotContent = $this->handleRequest(Request::$url, Request::$get);
 
-            ob_start();
-            require base_path . '/layouts/'. Page::$template.'.template.php';
-            $template = ob_get_clean();
-            $template = str_replace("<slot name='main'></slot>",  $slotContent, $template);
-            ob_start();
-            require base_path . '/layouts/main.php';
-            $page = ob_get_clean();
-            $page = str_replace("<slot name='main'></slot>",  $template, $page);
+            $hash =[];
 
-            if (env === 'dev' && Request::$acceptType === 'text/event-stream') {
-                header('Content-Type: text/event-stream');
-                header('Cache-Control: no-cache');
-                if(isset(Request::$slugs[0]) && Request::$slugs[0]==='check'){
-                    $msg ="data:".$slotContent. PHP_EOL;
-                    echo  $msg. PHP_EOL;
-                    ob_flush();
-                    return;
-                }
-
-                $runfiles = get_included_files();
-                $hash =[];
-
-                foreach(array_keys($runfiles) as $key){
-                    $exclude = false;
-                    foreach(Config::$config['app']['hotreload']['exclude'] as $remove){
-                        if(str_contains($runfiles[$key], $remove)){
-                            $exclude = true;
-                        }
-                    }
-                    if(!$exclude){
-                        $hash[$runfiles[$key]] = hash_file('md5', $runfiles[$key]);
+            foreach(array_keys($run_files) as $key){
+                $exclude = false;
+                foreach(Config::$config['app']['hotreload']['exclude'] as $remove){
+                    if(str_contains($run_files[$key], $remove)){
+                        $exclude = true;
                     }
                 }
-                $msg ="data:".json_encode(['status'=>'okay']). PHP_EOL;
-                $hash_file = fopen(base_path.'/tmp/hotreload.hash','w');
-                fwrite($hash_file, json_encode($hash));
-                fclose($hash_file);
-                echo  $msg. PHP_EOL;
-                return;
+                if(!$exclude){
+                    $hash[$run_files[$key]] = hash_file('md5', $run_files[$key]);
+                }
             }
-            echo $page;
-
+            $msg ="data:".json_encode(['status'=>'okay']). PHP_EOL;
+            $hash_file = fopen(base_path.'/tmp/hotreload.hash','w');
+            fwrite($hash_file, json_encode($hash));
+            fclose($hash_file);
+            echo  $msg. PHP_EOL;
+            return;
+        }
+        echo $page;
     }
     /**
      * 
@@ -202,85 +201,51 @@ class Lyn
         $current_dir = base_path.DIRECTORY_SEPARATOR.'routes';
 
         // Initialize an empty array to store the slug variables
-        Request::$slugs = array();
-        $includePath='';
-        $phpFile = 'index';
+        Request::$slugs = [];
+
+        $last_segment='';
         // Loop through the segments and check if they match any subdirectory or file
         foreach ($segments as $segment) {
-            // Get the full path of the current segment
-            $full_path = $current_dir.'/'.$segment;
-            if($segment===''){
-                $segment='index';
-            }
-            $full_path_php = $current_dir .'/'.$segment.'/index.php';
-            $full_segment_php = $current_dir .'/'.$segment.'.php';
-
-            // Check if the full path is a directory and if it exists
-            if ($includePath==='' && is_dir($full_path) && file_exists($full_path_php)) {
-                $includePath = $full_path_php;
-                $routeFound=true;
-            } else if ($includePath ==='' && file_exists($full_segment_php)) {
-                $includePath = $full_segment_php;
-                $routeFound = true;
-            } else if ($includePath==='') {
-                $current_dir .= '/'.$segment;
-            }
-            // Otherwise, add the segment to the slug array
-            else {
+            if(is_dir($current_dir.DIRECTORY_SEPARATOR.$segment)) {
+                $current_dir .= '/' . $segment;
+                $last_segment = $segment;
+            }else if(is_file($current_dir.DIRECTORY_SEPARATOR.$segment.'.php')){
+                $last_segment = $segment;
+            } else {
                 Request::$slugs[] = $segment;
             }
         }
-        echo require $includePath;
 
-        if (env === 'dev' && Request::$acceptType === 'text/event-stream') {
-
-            return ob_get_clean();
+        if(file_exists($current_dir.'/'.$last_segment.'.php')){
+            $routeFound=true;
+            require $current_dir.'/'.$last_segment.'.php';
+        }elseif(file_exists($current_dir.'/index.php')){
+            $routeFound=true;
+            require $current_dir.'/index.php';
+        }else{
+            Page::setTitle('Page not Found');
+            http_response_code(200);
+            require base_path . Config::$config['error404'];
         }
-
-        $output='';
-        // If no matching file was found, check if there is an index.php file in the current directory
-        if (!isset($full_path) || !is_file($full_path)) {
-            // Get the path of the index.php file
-            $index_path = file_exists($current_dir . DIRECTORY_SEPARATOR.$current_dir.'-index.php') ? $current_dir . DIRECTORY_SEPARATOR . $current_dir.'-index.php': $current_dir . DIRECTORY_SEPARATOR .'index.php';
-            Path::$hotPath = Path::$routePath . $current_dir;
-            // Check if the index.php file exists
-            if (is_file($index_path) && file_exists($index_path)) {
-                $routeFound = true;
-                // Include the index.php file and pass the slug array as a variable
-                include_once $index_path;
-                if(Request::$method==='GET' && function_exists('get')){
-                    $output= get();
-                }else if(Request::$method==='POST' && function_exists('post')){
-                    $output=post();
-                }else if(Request::$method==='PUT' && function_exists('put')){
-                    $output=put();
-                }else if(Request::$method==='DELETE' && function_exists('delete')){
-                    $output=delete();
-                }else{
-                    if(ob_get_contents() !==''){
-                        $routeFound = true;
-                    }else{
-                        //we did not detect an echo within the route
-                        $routeFound = false;
-                    }
-                }
-            }
-        }
-        if ($routeFound === false) {
-            if (file_exists(Path::$routePath . Path::$route)) {
-                //load the rout template;
-                if (file_exists(Path::$routePath . Path::$route . DIRECTORY_SEPARATOR . 'index.php')) {
-                    require Path::$routePath . Path::$route . DIRECTORY_SEPARATOR . 'index.php';
-                } else {
-                    Page::setTitle('Page not Found');
-                    http_response_code(404);
-                    require Config::$config['error404'];
-                }
-            } else {
-                Page::setTitle('Page not Found');
-                http_response_code(404);
-                require Config::$config['error404'];
-            }
+        $indexActionFn ='index_action';
+        $postActionFn ='post_action';
+        $putActionFn ='put_action';
+        $deleteActionFn ='delete_action';
+        $output = '';
+        Path::$hotPath = Path::$routePath . $current_dir;
+        // Check if the mens.index.php file exists
+        if(Request::$method === 'GET' && function_exists($indexActionFn)){
+            $output = $indexActionFn();
+        }else if(Request::$method === 'POST' && function_exists($postActionFn)){
+            $output = $postActionFn();
+        }else if(Request::$method === 'PUT' && function_exists($putActionFn)){
+            $output = $putActionFn();
+        }else if(Request::$method === 'DELETE' && function_exists($deleteActionFn)){
+            $output = $deleteActionFn();
+        }else {
+            Page::setTitle('Page not Found');
+            http_response_code(200);
+            $output = require base_path . Config::$config['app']['error404'];
         }
         echo $output;
         return ob_get_clean();

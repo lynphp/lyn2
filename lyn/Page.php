@@ -4,6 +4,7 @@
 namespace lyn;
 
 use Head;
+use lyn\base\View;
 
 class Page
 {
@@ -25,13 +26,14 @@ class Page
     {
         return self::$title;
     }
-    public static function addScript($src, $type = 'text/javascript'):void
+    public static function addScript(string $src, string $type = 'text/javascript'):void
     {
-        self::$scripts[] = "<script tyle='$type' src='".url_base_path.assets_path."/$src'></script>";
+        View::$loaded_templates[]=base_path.'/public/'.$src;
+        self::$scripts[] = "<script type='$type' src='".url_base_path.assets_path."/$src'></script>";
     }
-    public static function addScriptSrc($src, $type = 'text/javascript'):void
+    public static function addScriptSrc(string $src, string $type = 'text/javascript'):void
     {
-        self::$scripts[] = "<script tyle='$type'>$src</script>";
+        self::$scripts[] = "<script type='$type'>$src</script>";
     }
     public static function JScriptStart():void
     {
@@ -46,8 +48,9 @@ class Page
             self::$scripts[] = $code;
         }
     }
-    public static function addScriptAsync($src, $type = 'text/javascript'):void
+    public static function addScriptAsync(string $src, string $type = 'text/javascript'):void
     {
+        View::$loaded_templates[]=base_path.'/public/'.$src;
         self::$scripts[] = "<script async type='$type' src='".url_base_path."/$src'></script>";
     }
     public static function addCDNScriptAsync($src, $type = 'text/javascript'):void
@@ -65,6 +68,7 @@ class Page
      */
     public static function addAssetStyle(string $href, string $rel = 'stylesheet', string $type = ''):void
     {
+        View::$loaded_templates[]=base_path.'/public/'.$href;
         if ($type === '') {
             self::$styles[] = "<link rel='$rel' href='".url_base_path.assets_path."/$href'>";
         } else {

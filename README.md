@@ -23,7 +23,7 @@ use lyn\Request;
  *
  * Example URL:products/catalog/mens/shoes
  * Path: src/routes/products/cataglog/[slug]/
- * File: index.php
+ * File: mens.index.php
  */
 function index()
 {
@@ -83,7 +83,7 @@ class Shoe extends SecureComponent
      * Component to render products catalog
      *
      * URL:products/catalog/mens/shoes
-     * Path: src/routes/products/cataglog/[slug]/index.php
+     * Path: src/routes/products/cataglog/[slug]/mens.index.php
      */
     function index(...$props)
     {

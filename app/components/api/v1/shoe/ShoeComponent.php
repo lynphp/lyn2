@@ -35,7 +35,7 @@ class ShoeComponent extends SecureComponent
      * Component to render products catalog
      * 
      * URL:products/catalog/mens/shoes
-     * Path: src/routes/products/catalog/[slug]/index.php
+     * Path: src/routes/products/catalog/[slug]/mens.index.php
      */
     final public function index(...$props):string
     {
@@ -45,7 +45,7 @@ class ShoeComponent extends SecureComponent
      * Component to return products info in JSON format
      *
      * URL:products/catalog/mens/shoes
-     * Path: src/routes/products/catalog/[slug]/index.php
+     * Path: src/routes/products/catalog/[slug]/mens.index.php
      */
     final public function getShoe(...$props):string
     {
@@ -55,7 +55,7 @@ class ShoeComponent extends SecureComponent
      * Component to return products info in JSON format
      * 
      * URL:products/catalog/mens/shoes
-     * Path: src/routes/products/catalog/[slug]/index.php
+     * Path: src/routes/products/catalog/[slug]/mens.index.php
      */
     function getShoes(...$props)
     {
@@ -66,7 +66,7 @@ class ShoeComponent extends SecureComponent
      * Component to render products catalog
      * 
      * URL:products/catalog/mens/shoes
-     * Path: src/routes/products/catalog/[slug]/index.php
+     * Path: src/routes/products/catalog/[slug]/mens.index.php
      */
     final public function getShoePage(...$props):string
     {

@@ -1,3 +1,7 @@
 <?php
 \lyn\Page::$template='guest';
-echo 'from about1';
+function index_action(): string
+{
+
+    return 'from about';
+}

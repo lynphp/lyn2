@@ -10,7 +10,7 @@ use lyn\Request;
  * 
  * Example URL:products/catalog/mens/shoes
  * Path: src/routes/products/cataglog/[slug]/
- * File: index.php
+ * File: mens.index.php
  */
 function get()
 {

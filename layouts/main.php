@@ -8,10 +8,9 @@ Page::addScript('js/lyn.js');
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <?= Page::getMetaCharset() ?>
-    <meta http-equiv="Cache-control" content="private">
+    <meta http-equiv="content-type" content="private">
     <?= Page::getMetaViewport() ?>
     <?= Page::getStyles() ?>
     <title><?= Page::$title ?></title>

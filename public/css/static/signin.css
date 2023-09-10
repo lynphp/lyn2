@@ -2,7 +2,9 @@ form{
     display: flex;
     flex-direction: column;
     max-width: 300px;
+    background-color: yellow;
 }
 label{
     min-width: 40px;
 }
+
